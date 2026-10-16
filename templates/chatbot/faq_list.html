@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Respuestas del asistente{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      <h1>Respuestas del asistente</h1>
+      <p class="muted">Respuestas fijas que el asistente da al instante, sin IA y sin crear ticket. Tienen prioridad sobre las que trae el sistema.</p>
+    </div>
+    <a class="btn btn-outline" href="{% url 'chatbot:unanswered' %}">Preguntas sin respuesta</a>
+  </div>
+
+  <div class="panel flush">
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead><tr><th>Título</th><th>Palabras clave</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+        {% for e in entries %}
+          <tr>
+            <td data-label="Título"><strong>{{ e.title }}</strong>{% if e.suggested %} <span class="pill">Pregunta rápida</span>{% endif %}<br><span class="muted">{{ e.answer|truncatechars:90 }}</span></td>
+            <td data-label="Palabras clave">{{ e.keywords }}</td>
+            <td data-label="Estado"><span class="badge {% if e.active %}st-CERRADO{% else %}st-ABIERTO{% endif %}">{{ e.active|yesno:"Activa,Inactiva" }}</span></td>
+            <td data-label="" class="actions">
+              <a class="btn btn-sm btn-outline" href="{% url 'chatbot:faq_edit' e.id %}">Editar</a>
+              <form class="inline-form" method="post" action="{% url 'chatbot:faq_delete' e.id %}" onsubmit="return confirm('¿Eliminar esta respuesta?');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Eliminar</button></form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="empty">Aún no hay respuestas propias. Crea la primera abajo.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel narrow">
+    <h2>Nueva respuesta</h2>
+    <form method="post">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" %}
+      <button type="submit" class="btn">Crear respuesta</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

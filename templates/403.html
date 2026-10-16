@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Acceso restringido{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="panel auth error-page">
+    <p class="error-code">403</p>
+    <h1>No tienes acceso a esta página</h1>
+    <p class="muted">Tu cuenta no tiene permisos para ver este contenido. Si crees que es un error, contacta al administrador.</p>
+    <a class="btn" href="{% url 'home' %}">Volver al inicio</a>
+  </div>
+</div>
+{% endblock %}

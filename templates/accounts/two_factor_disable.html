@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Quitar verificación en dos pasos{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="panel auth">
+    <h1>Quitar verificación en dos pasos</h1>
+    {% if required %}
+      <p>La verificación en dos pasos es obligatoria para tu rol y no se puede quitar.</p>
+      <a class="btn btn-outline" href="{% url 'accounts:profile' %}">Volver a mi perfil</a>
+    {% else %}
+      <p class="muted">Tu cuenta quedará protegida solo por la contraseña. Confirma con tu contraseña actual.</p>
+      <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" %}
+        <button type="submit" class="btn btn-danger">Quitar verificación</button>
+        <a class="btn btn-outline" href="{% url 'accounts:profile' %}">Cancelar</a>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

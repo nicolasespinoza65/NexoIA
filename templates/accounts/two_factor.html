@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Verificación en dos pasos{% endblock %}
+{% block chat_widget %}{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="panel auth">
+    <h1>Verificación en dos pasos</h1>
+    {% if locked %}
+      <div class="flash flash-error" role="alert">Demasiados intentos fallidos. Espera {{ lock_minutes }} minutos antes de intentarlo de nuevo.</div>
+    {% else %}
+      <p class="muted">Abre tu aplicación autenticadora y escribe el código de 6 dígitos de Soluciones SSDP.</p>
+      <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" %}
+        <button type="submit" class="btn btn-block">Verificar</button>
+      </form>
+    {% endif %}
+    <p class="auth-alt"><a href="{% url 'login' %}">Volver a ingresar</a></p>
+    <p class="help">¿Perdiste tu teléfono? Pide a un administrador que restablezca tu verificación.</p>
+  </div>
+</div>
+{% endblock %}

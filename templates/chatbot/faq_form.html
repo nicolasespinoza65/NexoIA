@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Editar respuesta{% endblock %}
+{% block content %}
+<div class="container page">
+  <p class="back"><a href="{% url 'chatbot:faq_list' %}">Volver a las respuestas</a></p>
+  <div class="panel narrow">
+    <h1>Editar respuesta</h1>
+    <form method="post">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" %}
+      <button type="submit" class="btn">Guardar cambios</button>
+      <a class="btn btn-outline" href="{% url 'chatbot:faq_list' %}">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

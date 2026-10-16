@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Preguntas sin respuesta{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      <h1>Preguntas sin respuesta</h1>
+      <p class="muted">Lo que los clientes preguntaron y el asistente no supo contestar, de la más repetida a la menos. Crea una respuesta con un clic y la próxima vez se responderá sola.</p>
+    </div>
+    <a class="btn btn-outline" href="{% url 'chatbot:faq_list' %}">Ver respuestas</a>
+  </div>
+  <div class="panel flush">
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead><tr><th>Pregunta</th><th>Veces</th><th>Última vez</th><th></th></tr></thead>
+        <tbody>
+        {% for g in groups %}
+          <tr>
+            <td data-label="Pregunta">{{ g.question }}</td>
+            <td data-label="Veces">{{ g.count }}</td>
+            <td data-label="Última vez" class="nowrap">{{ g.last|date:"d/m/Y H:i" }}</td>
+            <td data-label="" class="actions">
+              <a class="btn btn-sm" href="{% url 'chatbot:faq_list' %}?title={{ g.question|urlencode }}&amp;keywords={{ g.keywords|urlencode }}">Crear respuesta</a>
+              <form class="inline-form" method="post" action="{% url 'chatbot:unanswered_dismiss' %}">{% csrf_token %}<input type="hidden" name="ids" value="{{ g.ids_text }}"><button type="submit" class="btn btn-sm btn-outline">Descartar</button></form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="empty">No hay preguntas pendientes. El asistente respondió todo lo que le preguntaron, o ya las revisaste.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

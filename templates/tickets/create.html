@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Nuevo ticket{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head"><h1>Nuevo ticket</h1></div>
+  <div class="create-grid">
+    <div class="panel">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" %}
+        <button type="submit" class="btn">Crear ticket</button>
+        <a class="btn btn-outline" href="{% url 'tickets:list' %}">Cancelar</a>
+      </form>
+    </div>
+    <aside class="panel side-note">
+      <h2>Qué pasa después</h2>
+      <p>Un moderador recibe tu ticket, define su prioridad y lo asigna a un trabajador.</p>
+      <p>Verás el estado en <strong>Mis tickets</strong> y te avisaremos por notificación cuando cambie.</p>
+      <p>Elige la categoría que mejor describa tu caso y, si puedes, adjunta una foto: así llega más rápido a la persona indicada.</p>
+      <p>Te pedimos teléfono y dirección para coordinar la visita; los guardamos en tu perfil para no repetirlos.</p>
+      <p>Si es una emergencia, elige esa categoría: entra con prioridad alta. Si hay riesgo inmediato para las personas, llama a Bomberos (132).</p>
+    </aside>
+  </div>
+</div>
+{% endblock %}

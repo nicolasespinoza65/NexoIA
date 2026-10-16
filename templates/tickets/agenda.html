@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Agenda de visitas{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      <h1>Agenda de visitas</h1>
+      <p class="muted">Próximas visitas agendadas{% if user.role == "CLIENTE" %} para tus tickets{% elif user.role == "TRABAJADOR" %} de los tickets que tienes asignados{% endif %}.</p>
+    </div>
+  </div>
+  <div class="panel flush">
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead>
+          <tr><th>Fecha y hora</th><th>Ticket</th>{% if user.role != "CLIENTE" %}<th>Cliente</th>{% endif %}<th>Dirección</th>{% if user.role != "TRABAJADOR" %}<th>Trabajador</th>{% endif %}<th>Indicaciones</th></tr>
+        </thead>
+        <tbody>
+        {% for t in visits %}
+          <tr>
+            <td data-label="Fecha y hora" class="nowrap"><strong>{{ t.visit_at|date:"D d/m" }}</strong> {{ t.visit_at|date:"H:i" }}</td>
+            <td data-label="Ticket"><a class="row-title" href="{% url 'tickets:detail' t.id %}">#{{ t.id }} {{ t.title }}</a></td>
+            {% if user.role != "CLIENTE" %}<td data-label="Cliente">{{ t.client.get_full_name|default:t.client.username }}</td>{% endif %}
+            <td data-label="Dirección">{% if t.address %}{{ t.address }}<br><a href="{{ t.maps_url }}" target="_blank" rel="noopener">Abrir en Google Maps</a>{% else %}<span class="muted">Sin dirección</span>{% endif %}</td>
+            {% if user.role != "TRABAJADOR" %}<td data-label="Trabajador">{% if t.worker %}{{ t.worker.get_full_name|default:t.worker.username }}{% else %}<span class="muted">Sin asignar</span>{% endif %}</td>{% endif %}
+            <td data-label="Indicaciones">{{ t.visit_note }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="empty">No hay visitas agendadas.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head"><h1>Usuarios</h1></div>
+  <div class="panel">
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>2 pasos</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+        {% for u in users %}
+          <tr>
+            <td data-label="Nombre">{{ u.get_full_name|default:u.username }}</td>
+            <td data-label="Correo">{{ u.email }}{% if not u.email_verified %} <span class="pill">sin confirmar</span>{% endif %}</td>
+            <td data-label="Rol">{{ u.get_role_display }}</td>
+            <td data-label="2 pasos">{% if u.totp_enabled %}<span class="badge st-CERRADO">Activa</span>{% if u != user %} <form class="inline-form" method="post" action="{% url 'accounts:reset_two_factor' u.id %}" onsubmit="return confirm('¿Quitar la verificación en dos pasos de esta cuenta?');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">Quitar</button></form>{% endif %}{% else %}<span class="muted">No</span>{% endif %}</td>
+            <td data-label="Estado"><span class="badge {% if u.is_active %}st-CERRADO{% else %}st-ABIERTO{% endif %}">{{ u.is_active|yesno:"Activo,Inactivo" }}</span></td>
+            <td data-label="">
+              {% if u != user %}
+                <form class="inline-form" method="post" action="{% url 'accounts:toggle_active' u.id %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">{% if u.is_active %}Desactivar{% else %}Activar{% endif %}</button></form>
+              {% else %}<span class="muted">Tu cuenta</span>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel narrow">
+    <h2>Crear usuario</h2>
+    <form method="post">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" %}
+      <button type="submit" class="btn">Crear usuario</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

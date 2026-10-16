@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Términos de uso{% endblock %}
+{% block content %}
+<div class="container page">
+  <article class="panel legal">
+    <h1>Términos de uso</h1>
+    <p class="muted">Última actualización: octubre de 2026</p>
+
+    <h2>1. Qué ofrece este sitio</h2>
+    <p>Este sitio permite a los clientes de Soluciones SSDP Servicios Integrales SpA solicitar servicios eléctricos mediante tickets, conversar con un asistente virtual y seguir el avance de sus solicitudes.</p>
+
+    <h2>2. Tu cuenta</h2>
+    <p>Debes entregar datos verdaderos y mantener tu contraseña en reserva. Eres responsable de lo que se haga con tu cuenta. Debes confirmar tu correo para usar el asistente completo.</p>
+
+    <h2>3. Uso de los tickets</h2>
+    <p>Describe tu solicitud con información veraz y completa. No uses el sitio para enviar contenido ofensivo, spam o solicitudes falsas. <strong>Si existe riesgo inmediato para las personas (fuego, humo o descargas), aléjate de la zona y llama a Bomberos (132): un ticket no reemplaza una llamada de emergencia.</strong></p>
+
+    <h2>4. Asistente virtual</h2>
+    <p>Las respuestas del asistente son automáticas y tienen carácter informativo. No constituyen una cotización ni un compromiso de precio, plazo o disponibilidad: eso lo confirma nuestro equipo al revisar tu ticket.</p>
+
+    <h2>5. Fotos y contenido que subes</h2>
+    <p>Al adjuntar una foto declaras que tienes derecho a compartirla y que no muestra a terceras personas sin su consentimiento. Las fotos solo se usan para atender tu solicitud.</p>
+
+    <h2>6. Cotizaciones y servicios</h2>
+    <p>Nuestro equipo puede enviarte una cotización dentro de tu ticket, con su monto, detalle y fecha de vigencia. Si la aceptas antes de que venza, dejas constancia de tu conformidad con ese detalle y monto, y el equipo se pondrá en contacto para coordinar el trabajo. Los plazos y la agenda de visitas los confirma el equipo y pueden reprogramarse avisándote por la plataforma.</p>
+
+    <h2>7. Suspensión de cuentas</h2>
+    <p>Podemos suspender cuentas que hagan un uso abusivo del sitio, por ejemplo enviar mensajes o solicitudes en masa o intentar acceder a datos de otras personas.</p>
+
+    <h2>8. Disponibilidad</h2>
+    <p>Procuramos que el sitio funcione de forma continua, pero puede haber interrupciones por mantención o fallas ajenas a nosotros.</p>
+
+    <h2>9. Datos personales</h2>
+    <p>El tratamiento de tus datos se explica en nuestra <a href="{% url 'privacy' %}">política de privacidad</a>.</p>
+
+    <h2>10. Ley aplicable y cambios</h2>
+    <p>Estos términos se rigen por las leyes de Chile. Podemos modificarlos; la fecha de arriba indica la última versión.</p>
+  </article>
+</div>
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block title %}Ticket #{{ ticket.id }}{% endblock %}
+{% block content %}
+<div class="container page">
+  <p class="back"><a href="{% url 'tickets:list' %}">Volver a tickets</a></p>
+  <div class="detail-grid">
+    <div>
+      <article class="panel">
+        <h1>#{{ ticket.id }} {{ ticket.title }}</h1>
+        <p class="description">{{ ticket.description|linebreaksbr }}</p>
+        {% if ticket.image %}
+          <figure class="ticket-photo">
+            <a href="{% url 'tickets:image' ticket.id %}" target="_blank" rel="noopener"><img src="{% url 'tickets:image' ticket.id %}" alt="Foto adjunta al ticket #{{ ticket.id }}"></a>
+            <figcaption>Foto adjunta por el cliente. Haz clic para verla completa.</figcaption>
+          </figure>
+        {% endif %}
+      </article>
+
+      {% if quotes or quote_form %}
+      <section class="panel" aria-labelledby="cotizaciones">
+        <h2 id="cotizaciones">Cotizaciones</h2>
+        {% for q in quotes %}
+          <div class="quote">
+            <p class="quote-head"><strong>{{ q.amount_display }}</strong> <span class="badge qs-{{ q.status }}">{{ q.get_status_display }}</span>{% if q.is_expired %} <span class="pill pill-urgent">Vencida</span>{% endif %}</p>
+            <p>{{ q.detail|linebreaksbr }}</p>
+            <p class="muted">Válida hasta el {{ q.valid_until|date:"d/m/Y" }}. Enviada el {{ q.created_at|date:"d/m/Y H:i" }}{% if q.responded_at %}; respondida el {{ q.responded_at|date:"d/m/Y H:i" }}{% endif %}.</p>
+            {% if q.response_comment %}<p class="muted">Comentario del cliente: {{ q.response_comment }}</p>{% endif %}
+            {% if pending_quote and q.id == pending_quote.id and not q.is_expired %}
+              <form method="post" action="{% url 'tickets:quote_respond' ticket.id q.id %}">
+                {% csrf_token %}
+                {% include "partials/form_fields.html" with form=quote_response_form %}
+                <button type="submit" name="decision" value="accept" class="btn">Aceptar cotización</button>
+                <button type="submit" name="decision" value="reject" class="btn btn-outline">Rechazar</button>
+              </form>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p class="muted">Aún no hay cotizaciones.</p>
+        {% endfor %}
+        {% if quote_form %}
+          <form method="post" action="{% url 'tickets:quote_create' ticket.id %}" class="comment-form">
+            {% csrf_token %}
+            <h3>Enviar una cotización al cliente</h3>
+            {% include "partials/form_fields.html" with form=quote_form %}
+            <button type="submit" class="btn">Enviar cotización</button>
+          </form>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      {% if photos or work_photo_form %}
+      <section class="panel" aria-labelledby="fotos-trabajo">
+        <h2 id="fotos-trabajo">Fotos del trabajo</h2>
+        {% if photos %}
+          <div class="photo-grid">
+            {% for photo in photos %}
+              <figure>
+                <a href="{% url 'tickets:photo' ticket.id photo.id %}" target="_blank" rel="noopener"><img src="{% url 'tickets:photo' ticket.id photo.id %}" alt="{{ photo.caption|default:'Foto del trabajo realizado' }}" loading="lazy"></a>
+                {% if photo.caption %}<figcaption>{{ photo.caption }}</figcaption>{% endif %}
+              </figure>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="muted">Aún no hay fotos del trabajo.</p>
+        {% endif %}
+        {% if work_photo_form %}
+          <form method="post" action="{% url 'tickets:photo_upload' ticket.id %}" enctype="multipart/form-data" class="comment-form">
+            {% csrf_token %}
+            {% include "partials/form_fields.html" with form=work_photo_form %}
+            <button type="submit" class="btn btn-outline">Subir foto</button>
+          </form>
+        {% endif %}
+      </section>
+      {% endif %}
+
+      {% if ticket.closing_note %}
+      <section class="panel rating-panel" aria-labelledby="nota-cierre">
+        <h2 id="nota-cierre">Nota de cierre del equipo</h2>
+        <p>{{ ticket.closing_note|linebreaksbr }}</p>
+      </section>
+      {% endif %}
+
+      {% if rating_form %}
+      <section class="panel rating-panel" aria-labelledby="calificar">
+        <h2 id="calificar">Califica la atención</h2>
+        <p class="muted">Tu ticket está cerrado. Tu opinión nos ayuda a mejorar.</p>
+        <form method="post" action="{% url 'tickets:rate' ticket.id %}">
+          {% csrf_token %}
+          {% include "partials/form_fields.html" with form=rating_form %}
+          <button type="submit" class="btn">Enviar calificación</button>
+        </form>
+      </section>
+      {% elif ticket.rating %}
+      <section class="panel rating-panel" aria-labelledby="calificacion">
+        <h2 id="calificacion">Calificación del cliente: {{ ticket.rating }} de 5</h2>
+        {% if ticket.rating_comment %}<p class="muted">{{ ticket.rating_comment }}</p>{% endif %}
+      </section>
+      {% endif %}
+
+      <section class="panel" aria-labelledby="comentarios">
+        <h2 id="comentarios">Comentarios</h2>
+        {% for c in comments %}
+          <div class="comment">
+            <p class="comment-meta"><strong>{{ c.author.get_full_name|default:c.author.username }}</strong> <span class="muted">{{ c.author.get_role_display }}, {{ c.created_at|date:"d/m/Y H:i" }}</span></p>
+            <p>{{ c.text }}</p>
+          </div>
+        {% empty %}
+          <p class="muted">Aún no hay comentarios.</p>
+        {% endfor %}
+        <form method="post" class="comment-form">
+          {% csrf_token %}
+          {% include "partials/form_fields.html" %}
+          <button type="submit" class="btn">Comentar</button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="historial">
+        <h2 id="historial">Historial</h2>
+        <ol class="timeline">
+          {% for e in events %}
+            <li>
+              <span class="timeline-when">{{ e.created_at|date:"d/m/Y H:i" }}</span>
+              <strong>{{ e.get_kind_display }}</strong>{% if e.actor %} por {{ e.actor.get_full_name|default:e.actor.username }}{% endif %}
+              {% if e.detail %}<span class="muted">· {{ e.detail }}</span>{% endif %}
+            </li>
+          {% empty %}
+            <li class="muted">Este ticket no tiene movimientos registrados.</li>
+          {% endfor %}
+        </ol>
+      </section>
+    </div>
+
+    <aside class="panel details">
+      <h2>Detalles</h2>
+      <dl>
+        <dt>Estado</dt><dd><span class="badge st-{{ ticket.status }}">{{ ticket.get_status_display }}</span></dd>
+        <dt>Prioridad</dt><dd><span class="prio pr-{{ ticket.priority }}">{{ ticket.get_priority_display }}</span></dd>
+        <dt>Categoría</dt>
+        <dd>
+          {{ ticket.get_category_display }}
+          {% if user.role == "MODERADOR" or user.role == "ADMIN" %}
+            <form class="inline-form stack" method="post" action="{% url 'tickets:category' ticket.id %}">
+              {% csrf_token %}
+              <select name="category" aria-label="Cambiar categoría">
+                {% for value, label in categories %}<option value="{{ value }}"{% if value == ticket.category %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+              <button type="submit" class="btn btn-sm btn-outline">Cambiar</button>
+            </form>
+          {% endif %}
+        </dd>
+        <dt>Origen</dt><dd>{{ ticket.get_source_display }}</dd>
+        <dt>Cliente</dt><dd>{{ ticket.client.get_full_name|default:ticket.client.username }}</dd>
+        {% if ticket.phone %}
+          <dt>Teléfono</dt>
+          <dd><a href="tel:{{ ticket.phone }}">{{ ticket.phone }}</a>
+            {% if user.role != "CLIENTE" and ticket.whatsapp_number %}<br><a href="https://wa.me/{{ ticket.whatsapp_number }}" target="_blank" rel="noopener">Escribir por WhatsApp</a>{% endif %}
+          </dd>
+        {% endif %}
+        {% if ticket.address %}
+          <dt>Dirección del trabajo</dt>
+          <dd>{{ ticket.address }}<br><a href="{{ ticket.maps_url }}" target="_blank" rel="noopener">Abrir en Google Maps</a></dd>
+        {% endif %}
+        {% if ticket.visit_at %}
+          <dt>Visita agendada</dt>
+          <dd>{{ ticket.visit_at|date:"d/m/Y H:i" }}{% if ticket.visit_note %}<br><span class="muted">{{ ticket.visit_note }}</span>{% endif %}</dd>
+        {% endif %}
+        <dt>Trabajador</dt><dd>{% if ticket.worker %}{{ ticket.worker.get_full_name|default:ticket.worker.username }}{% else %}<span class="muted">Sin asignar</span>{% endif %}</dd>
+        <dt>Creado</dt><dd>{{ ticket.created_at|date:"d/m/Y H:i" }}</dd>
+        {% if ticket.closed_at %}<dt>Cerrado</dt><dd>{{ ticket.closed_at|date:"d/m/Y H:i" }}</dd>{% endif %}
+      </dl>
+
+      {% if workers is not None %}
+        <form class="side-form" method="post" action="{% url 'tickets:assign' ticket.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="from" value="detail">
+          <label for="assign-worker">{% if ticket.worker %}Reasignar a{% else %}Asignar a{% endif %}</label>
+          <select id="assign-worker" name="worker_id">
+            {% for w in workers %}<option value="{{ w.id }}"{% if ticket.worker_id == w.id %} selected{% endif %}>{{ w.get_full_name|default:w.username }}</option>{% endfor %}
+          </select>
+          <label for="assign-priority">Prioridad</label>
+          <select id="assign-priority" name="priority">
+            <option value="ALTA"{% if ticket.priority == "ALTA" %} selected{% endif %}>Alta</option>
+            <option value="MEDIA"{% if ticket.priority == "MEDIA" %} selected{% endif %}>Media</option>
+            <option value="BAJA"{% if ticket.priority == "BAJA" %} selected{% endif %}>Baja</option>
+          </select>
+          <button type="submit" class="btn btn-sm">{% if ticket.worker %}Reasignar{% else %}Asignar{% endif %}</button>
+        </form>
+      {% endif %}
+
+      {% if visit_form %}
+        <form class="side-form" method="post" action="{% url 'tickets:visit' ticket.id %}">
+          {% csrf_token %}
+          <h3 class="side-title">{% if ticket.visit_at %}Reprogramar visita{% else %}Agendar visita{% endif %}</h3>
+          {% include "partials/form_fields.html" with form=visit_form %}
+          <button type="submit" class="btn btn-sm">{% if ticket.visit_at %}Reprogramar{% else %}Agendar{% endif %}</button>
+        </form>
+      {% endif %}
+
+      {% if close_form %}
+        <div class="side-form">
+          <h3 class="side-title">Trabajo en terreno</h3>
+          {% if ticket.status != "EN_PROCESO" %}
+            <form method="post" action="{% url 'tickets:status' ticket.id 'EN_PROCESO' %}" class="side-actions-form">
+              {% csrf_token %}<input type="hidden" name="from" value="detail">
+              <button type="submit" class="btn btn-sm btn-outline">Marcar en proceso</button>
+            </form>
+          {% endif %}
+          <form method="post" action="{% url 'tickets:status' ticket.id 'CERRADO' %}">
+            {% csrf_token %}<input type="hidden" name="from" value="detail">
+            {% include "partials/form_fields.html" with form=close_form %}
+            <button type="submit" class="btn btn-sm">Cerrar ticket</button>
+          </form>
+        </div>
+      {% endif %}
+
+      {% if user.role == "MODERADOR" or user.role == "ADMIN" %}
+        <div class="side-form">
+          <h3 class="side-title">Ayuda de IA</h3>
+          <form method="post" action="{% url 'tickets:suggest' ticket.id %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">Sugerir categoría, prioridad y resumen</button></form>
+          {% if ai_suggestion %}
+            <div class="ai-box">
+              <p class="ai-tag">{% if ai_suggestion.source == "ia" %}Propuesta de la IA{% else %}Propuesta con reglas simples (sin IA){% endif %}. Tú decides.</p>
+              <p><strong>Resumen:</strong> {{ ai_suggestion.summary }}</p>
+              <div class="ai-row"><span><strong>Categoría:</strong> {{ ai_suggestion.category_label }}</span>
+                {% if ai_suggestion.category != ticket.category %}
+                  <form class="inline-form" method="post" action="{% url 'tickets:category' ticket.id %}">{% csrf_token %}<input type="hidden" name="category" value="{{ ai_suggestion.category }}"><button type="submit" class="btn btn-sm">Aplicar</button></form>
+                {% else %}<span class="muted">ya es la actual</span>{% endif %}
+              </div>
+              <div class="ai-row"><span><strong>Prioridad:</strong> {{ ai_suggestion.priority_label }}</span>
+                {% if ai_suggestion.priority != ticket.priority %}
+                  <form class="inline-form" method="post" action="{% url 'tickets:priority' ticket.id %}">{% csrf_token %}<input type="hidden" name="priority" value="{{ ai_suggestion.priority }}"><button type="submit" class="btn btn-sm">Aplicar</button></form>
+                {% else %}<span class="muted">ya es la actual</span>{% endif %}
+              </div>
+              <form method="post" action="{% url 'tickets:suggest_dismiss' ticket.id %}">{% csrf_token %}<button type="submit" class="btn-link">Descartar propuesta</button></form>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if can_cancel or can_reopen %}
+        <div class="side-actions">
+          {% if can_cancel %}
+            <form method="post" action="{% url 'tickets:cancel' ticket.id %}" onsubmit="return confirm('¿Cancelar el ticket #{{ ticket.id }}?');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">Cancelar ticket</button></form>
+          {% endif %}
+          {% if can_reopen %}
+            <form method="post" action="{% url 'tickets:reopen' ticket.id %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">Reabrir ticket</button></form>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if user.role == "ADMIN" %}
+        <form class="danger-zone" method="post" action="{% url 'tickets:delete' ticket.id %}" onsubmit="return confirm('¿Eliminar el ticket #{{ ticket.id }}? Se borrarán también sus comentarios, cotizaciones y fotos. Esta acción no se puede deshacer.');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-danger">Eliminar ticket</button>
+        </form>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}

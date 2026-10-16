@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Activar verificación en dos pasos{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head"><h1>Activar verificación en dos pasos</h1></div>
+  <div class="create-grid">
+    <div class="panel">
+      <ol class="steps-list">
+        <li>Instala una aplicación autenticadora en tu teléfono (Google Authenticator, Microsoft Authenticator, Authy u otra).</li>
+        <li>Agrega una cuenta nueva con <strong>ingreso manual</strong> y escribe esta clave:
+          <p class="secret-key">{{ secret }}</p>
+          <p class="help">Tipo de clave: basada en tiempo. Si tu aplicación acepta enlaces, también sirve <a href="{{ uri }}">este enlace</a>.</p>
+        </li>
+        <li>Escribe el código de 6 dígitos que muestra la aplicación para confirmar:</li>
+      </ol>
+      <form method="post">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" %}
+        <button type="submit" class="btn">Activar</button>
+        <a class="btn btn-outline" href="{% url 'accounts:profile' %}">Cancelar</a>
+      </form>
+    </div>
+    <aside class="panel side-note">
+      <h2>Por qué activarla</h2>
+      <p>Aunque alguien conozca tu contraseña, no podrá entrar sin el código de tu teléfono.</p>
+      <p>Si pierdes el teléfono, un administrador puede restablecer tu verificación.</p>
+    </aside>
+  </div>
+</div>
+{% endblock %}

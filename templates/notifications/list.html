@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Notificaciones{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <h1>Notificaciones</h1>
+    <div class="head-actions">
+      {% if unseen_notifications %}
+        <form method="post" action="{% url 'notifications:mark_read' %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">Marcar todas como leídas</button></form>
+      {% endif %}
+      <form method="post" action="{% url 'notifications:clear_read' %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">Eliminar leídas</button></form>
+    </div>
+  </div>
+  <div class="panel flush">
+    <ul class="notif-list">
+      {% for n in page_obj %}
+        <li class="{% if not n.seen %}unseen{% endif %}">
+          <span class="notif-text">{% if n.link %}<a href="{% url 'notifications:open' n.pk %}">{{ n.message }}</a>{% else %}{{ n.message }}{% endif %}</span>
+          <span class="muted nowrap">{{ n.created_at|date:"d/m/Y H:i" }}</span>
+        </li>
+      {% empty %}
+        <li class="empty">No tienes notificaciones.</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <nav class="pagination" aria-label="Paginación">
+    {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline" href="?page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn btn-sm btn-outline" href="?page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

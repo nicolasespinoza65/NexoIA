@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Indicadores{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head"><h1>Indicadores de gestión</h1></div>
+
+  <form class="filters" method="get">
+    <div class="filter">
+      <label for="f-desde">Desde</label>
+      <input id="f-desde" type="date" name="desde" value="{{ date_from }}">
+    </div>
+    <div class="filter">
+      <label for="f-hasta">Hasta</label>
+      <input id="f-hasta" type="date" name="hasta" value="{{ date_to }}">
+    </div>
+    <button type="submit" class="btn btn-sm">Aplicar</button>
+    {% if date_from or date_to %}<a class="btn btn-sm btn-outline" href="{% url 'stats:dashboard' %}">Quitar filtro</a>{% endif %}
+  </form>
+  <p class="muted">{% if date_from or date_to %}Tickets y consultas creados{% if date_from %} desde el {{ date_from }}{% endif %}{% if date_to %} hasta el {{ date_to }}{% endif %}. La carga por trabajador, los tickets sin atender y las semanas son siempre actuales.{% else %}Todo el historial. Usa las fechas para ver un período.{% endif %}</p>
+
+  <div class="tiles">
+    <div class="tile"><span class="tile-num">{{ stats.total_tickets }}</span><span class="tile-label">Tickets en el período</span></div>
+    <div class="tile"><span class="tile-num">{{ stats.open_tickets }}</span><span class="tile-label">Abiertos, sin asignar</span></div>
+    <div class="tile{% if stats.stale_count %} tile-alert{% endif %}"><span class="tile-num">{{ stats.stale_count }}</span><span class="tile-label">Sin atender hace más de {{ stats.stale_hours }} h</span></div>
+    <div class="tile"><span class="tile-num">{{ stats.total_chats }}</span><span class="tile-label">Consultas al asistente</span></div>
+    <div class="tile"><span class="tile-num">{{ stats.resolved_by_ai_percent }}%</span><span class="tile-label">Resueltas por el asistente</span></div>
+    <div class="tile"><span class="tile-num tile-num-sm">{{ stats.avg_first_response|default:"Sin datos" }}</span><span class="tile-label">Tiempo medio de primera respuesta ({{ stats.first_response_count }} tickets)</span></div>
+    <div class="tile"><span class="tile-num tile-num-sm">{{ stats.avg_resolution|default:"Sin datos" }}</span><span class="tile-label">Tiempo medio de resolución</span></div>
+    <div class="tile"><span class="tile-num tile-num-sm">{% if stats.satisfaction.average %}{{ stats.satisfaction.average }} de 5{% else %}Sin datos{% endif %}</span><span class="tile-label">Satisfacción ({{ stats.satisfaction.count }} calificaciones)</span></div>
+  </div>
+
+  {% if stats.stale_tickets %}
+  <section class="panel">
+    <h2>Tickets sin atender</h2>
+    <p class="muted">Abiertos y sin trabajador asignado hace más de {{ stats.stale_hours }} horas. Los más antiguos primero.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Asunto</th><th>Cliente</th><th>Esperando</th></tr></thead>
+        <tbody>
+        {% for t in stats.stale_tickets %}
+          <tr>
+            <td>{{ t.id }}</td>
+            <td><a class="row-title" href="{% url 'tickets:detail' t.id %}">{{ t.title }}</a>{% if t.urgent %} <span class="pill pill-urgent">Urgente</span>{% endif %}</td>
+            <td>{{ t.client }}</td>
+            <td class="nowrap">{{ t.hours }} h</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if stats.stale_count > 10 %}<p class="muted">Se muestran 10 de {{ stats.stale_count }}.</p>{% endif %}
+  </section>
+  {% endif %}
+
+  <section class="panel">
+    <h2>Carga actual por trabajador</h2>
+    {% if stats.worker_load %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Trabajador</th><th>En curso (asignados y en proceso)</th><th>Cerrados en total</th></tr></thead>
+        <tbody>
+        {% for w in stats.worker_load %}
+          <tr><td>{{ w.get_full_name|default:w.username }}</td><td>{{ w.active }}</td><td>{{ w.done }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<p class="muted">No hay trabajadores activos.</p>{% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Tickets nuevos por semana</h2>
+    {% for row in stats.weekly_volume %}
+      <div class="bar-row wide-label">
+        <span class="bar-label">{{ row.label }}</span>
+        <span class="bar-track"><span class="bar-fill" style="width: {{ row.percent }}%"></span></span>
+        <span class="bar-num">{{ row.count }}</span>
+      </div>
+    {% endfor %}
+  </section>
+
+  <div class="two-col">
+    <section class="panel">
+      <h2>Tickets por estado</h2>
+      {% for row in stats.tickets_by_status %}
+        <div class="bar-row">
+          <span class="bar-label">{{ row.label }}</span>
+          <span class="bar-track"><span class="bar-fill" style="width: {{ row.percent }}%"></span></span>
+          <span class="bar-num">{{ row.count }}</span>
+        </div>
+      {% endfor %}
+    </section>
+    <section class="panel">
+      <h2>Tickets por categoría</h2>
+      {% for row in stats.tickets_by_category %}
+        <div class="bar-row">
+          <span class="bar-label">{{ row.label }}</span>
+          <span class="bar-track"><span class="bar-fill" style="width: {{ row.percent }}%"></span></span>
+          <span class="bar-num">{{ row.count }}</span>
+        </div>
+      {% endfor %}
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>Satisfacción de los clientes</h2>
+    {% if stats.satisfaction.distribution %}
+      <p class="muted">Promedio {{ stats.satisfaction.average }} de 5 según {{ stats.satisfaction.count }} calificaciones.</p>
+      {% for row in stats.satisfaction.distribution %}
+        <div class="bar-row">
+          <span class="bar-label">{{ row.label }}</span>
+          <span class="bar-track"><span class="bar-fill" style="width: {{ row.percent }}%"></span></span>
+          <span class="bar-num">{{ row.count }}</span>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">Aún no hay calificaciones en este período. Los clientes pueden calificar cuando se cierra su ticket.</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

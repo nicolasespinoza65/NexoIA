@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{% if user.role == "CLIENTE" %}Mis tickets{% else %}Tickets{% endif %}{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      <h1>{% if user.role == "CLIENTE" %}Mis tickets{% elif user.role == "TRABAJADOR" %}Mis trabajos asignados{% else %}Tickets{% endif %}</h1>
+      <p class="muted">{{ page_obj.paginator.count }} {% if is_filtered %}resultado{{ page_obj.paginator.count|pluralize }}{% else %}ticket{{ page_obj.paginator.count|pluralize }}{% endif %}</p>
+    </div>
+    <div class="head-actions">
+      {% if user.role == "MODERADOR" or user.role == "ADMIN" %}
+        <a class="btn btn-outline" href="{% url 'tickets:export' %}{% if querystring %}?{{ querystring }}{% endif %}">Exportar a Excel (CSV)</a>
+      {% endif %}
+      {% if user.role == "CLIENTE" %}<a class="btn" href="{% url 'tickets:create' %}">Nuevo ticket</a>{% endif %}
+    </div>
+  </div>
+
+  {% if user.role != "CLIENTE" %}
+  <form class="filters" method="get">
+    <div class="filter grow">
+      <label for="f-q">Buscar</label>
+      <input id="f-q" type="search" name="q" value="{{ search }}" placeholder="Asunto, descripción, cliente o número">
+    </div>
+    <div class="filter">
+      <label for="f-categoria">Categoría</label>
+      <select id="f-categoria" name="categoria">
+        <option value="">Todas</option>
+        {% for value, label in categories %}<option value="{{ value }}"{% if value == selected_category %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="filter">
+      <label for="f-estado">Estado</label>
+      <select id="f-estado" name="estado">
+        <option value="">Todos</option>
+        {% for value, label in statuses %}<option value="{{ value }}"{% if value == selected_status %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-sm">Filtrar</button>
+    {% if is_filtered %}<a class="btn btn-sm btn-outline" href="{% url 'tickets:list' %}">Limpiar</a>{% endif %}
+  </form>
+  {% endif %}
+
+  <div class="panel flush">
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead>
+          <tr>
+            <th>#</th><th>Asunto</th>{% if user.role != "CLIENTE" %}<th>Cliente</th>{% endif %}
+            <th>Estado</th><th>Prioridad</th><th>Creado</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for t in page_obj %}
+          <tr{% if t.category == "EMERGENCIA" and t.status != "CERRADO" %} class="row-urgent"{% endif %}>
+            <td data-label="#">{{ t.id }}</td>
+            <td data-label="Asunto">
+              <a class="row-title" href="{% url 'tickets:detail' t.id %}">{{ t.title }}</a>
+              <span class="pill{% if t.category == 'EMERGENCIA' %} pill-urgent{% endif %}">{{ t.get_category_display }}</span>
+              {% if t.source == "IA" %}<span class="pill pill-ia">Asistente IA</span>{% endif %}
+              {% if t.image %}<span class="pill">Con foto</span>{% endif %}
+            </td>
+            {% if user.role != "CLIENTE" %}<td data-label="Cliente">{{ t.client.get_full_name|default:t.client.username }}</td>{% endif %}
+            <td data-label="Estado"><span class="badge st-{{ t.status }}">{{ t.get_status_display }}</span></td>
+            <td data-label="Prioridad"><span class="prio pr-{{ t.priority }}">{{ t.get_priority_display }}</span></td>
+            <td data-label="Creado" class="nowrap">{{ t.created_at|date:"d/m/Y H:i" }}</td>
+            <td data-label="" class="actions">
+              <a class="btn btn-sm btn-outline" href="{% url 'tickets:detail' t.id %}">Detalle</a>
+              {% if user.role == "MODERADOR" and t.status != "CERRADO" and t.status != "CANCELADO" %}
+                <form class="inline-form" method="post" action="{% url 'tickets:assign' t.id %}">
+                  {% csrf_token %}
+                  <select name="worker_id" aria-label="Trabajador">{% for w in workers %}<option value="{{ w.id }}"{% if t.worker_id == w.id %} selected{% endif %}>{{ w.get_full_name|default:w.username }}</option>{% endfor %}</select>
+                  <select name="priority" aria-label="Prioridad">
+                    <option value="ALTA"{% if t.priority == "ALTA" %} selected{% endif %}>Alta</option>
+                    <option value="MEDIA"{% if t.priority == "MEDIA" %} selected{% endif %}>Media</option>
+                    <option value="BAJA"{% if t.priority == "BAJA" %} selected{% endif %}>Baja</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm">{% if t.worker %}Reasignar{% else %}Asignar{% endif %}</button>
+                </form>
+              {% endif %}
+              {% if user.role == "ADMIN" %}
+                <form class="inline-form" method="post" action="{% url 'tickets:delete' t.id %}" onsubmit="return confirm('¿Eliminar el ticket #{{ t.id }}? Esta acción no se puede deshacer.');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger">Eliminar</button></form>
+              {% endif %}
+              {% if user.role == "TRABAJADOR" and t.status != "CERRADO" and t.status != "CANCELADO" %}
+                <form class="inline-form" method="post" action="{% url 'tickets:status' t.id 'EN_PROCESO' %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">En proceso</button></form>
+                <form class="inline-form" method="post" action="{% url 'tickets:status' t.id 'CERRADO' %}">{% csrf_token %}<button type="submit" class="btn btn-sm">Cerrar</button></form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="empty">
+            {% if is_filtered %}Ningún ticket coincide con la búsqueda o los filtros.
+            {% elif user.role == "CLIENTE" %}Aún no tienes tickets. Crea el primero o pregúntale al asistente.
+            {% else %}No hay tickets por mostrar.{% endif %}
+          </td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav class="pagination" aria-label="Paginación">
+    {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn btn-sm btn-outline" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+# Integración continua: cada vez que se sube código, se revisan las migraciones y se corren todas las pruebas.
+# (Funciona si el repositorio está en GitHub y la carpeta raíz del repositorio es la que contiene manage.py.)
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    env:
+      # Sin DJANGO_DEBUG el sitio arranca en modo producción, que exige una clave secreta real (clave solo para CI).
+      DJANGO_SECRET_KEY: clave-solo-para-ci-no-usar-en-produccion-0123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -r requirements.txt
+      - run: python manage.py check
+      - name: Las migraciones deben estar al día con los modelos
+        run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py test
+      - name: Los estáticos se versionan sin errores (collectstatic con huellas)
+        run: python manage.py collectstatic --noinput
+      - run: node --test tests_js/chat.test.js

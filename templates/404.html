@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Página no encontrada{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="panel auth error-page">
+    <p class="error-code">404</p>
+    <h1>No encontramos esa página</h1>
+    <p class="muted">La dirección no existe o el contenido fue eliminado.</p>
+    <a class="btn" href="{% url 'home' %}">Volver al inicio</a>
+  </div>
+</div>
+{% endblock %}

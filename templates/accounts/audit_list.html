@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Auditoría{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      <h1>Registro de auditoría</h1>
+      <p class="muted">Acciones importantes: quién las hizo, cuándo y desde qué dirección.</p>
+    </div>
+  </div>
+  <form class="filters" method="get">
+    <div class="filter">
+      <label for="f-accion">Acción</label>
+      <select id="f-accion" name="accion">
+        <option value="">Todas</option>
+        {% for value, label in actions %}<option value="{{ value }}"{% if value == selected_action %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-sm">Filtrar</button>
+    {% if selected_action %}<a class="btn btn-sm btn-outline" href="{% url 'accounts:audit' %}">Limpiar</a>{% endif %}
+  </form>
+  <div class="panel flush">
+    <div class="table-wrap">
+      <table class="table-stack">
+        <thead><tr><th>Fecha</th><th>Quién</th><th>Acción</th><th>Sobre</th><th>Detalle</th><th>Dirección</th></tr></thead>
+        <tbody>
+        {% for e in page_obj %}
+          <tr>
+            <td data-label="Fecha" class="nowrap">{{ e.created_at|date:"d/m/Y H:i" }}</td>
+            <td data-label="Quién">{% if e.actor %}{{ e.actor.get_full_name|default:e.actor.username }}{% else %}<span class="muted">Sistema o visitante</span>{% endif %}</td>
+            <td data-label="Acción">{{ e.get_action_display }}</td>
+            <td data-label="Sobre">{{ e.target }}</td>
+            <td data-label="Detalle">{{ e.detail }}</td>
+            <td data-label="Dirección" class="nowrap">{{ e.ip|default:"" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="empty">No hay registros.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <nav class="pagination" aria-label="Paginación">
+    {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+    <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn btn-sm btn-outline" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

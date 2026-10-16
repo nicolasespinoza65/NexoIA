@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Eliminar mi cuenta{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="panel auth">
+    <h1>Eliminar mi cuenta</h1>
+    <p>Al eliminar tu cuenta:</p>
+    <ul>
+      <li>Se borran tu nombre, correo, teléfono, dirección y contraseña.</li>
+      <li>Se borran tus conversaciones con el asistente, tus notificaciones y las fotos de tus tickets.</li>
+      <li>Tus tickets activos se cancelan. Las solicitudes ya hechas quedan en el historial de la empresa sin tus datos de contacto ni tu identidad.</li>
+    </ul>
+    <p class="muted">Si quieres, antes <a href="{% url 'accounts:profile' %}">descarga una copia de tus datos</a> desde tu perfil.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" %}
+      <button type="submit" class="btn btn-danger">Eliminar mi cuenta</button>
+      <a class="btn btn-outline" href="{% url 'accounts:profile' %}">Cancelar</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

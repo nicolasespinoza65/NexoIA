@@ -1,0 +1,41 @@
+{% load static %}
+<div id="chat-widget" class="chat-widget"
+     data-auth="{% if user.is_authenticated %}1{% else %}0{% endif %}"
+     data-csrf="{{ csrf_token }}"
+     data-login-url="{% url 'login' %}?next={{ request.path|urlencode }}"
+     data-register-url="{% url 'register' %}"
+     {% if user.is_authenticated %}data-history-url="{% url 'chatbot:history' %}" data-send-url="{% url 'chatbot:send' %}" data-human-url="{% url 'chatbot:human' %}"{% else %}data-send-url="{% url 'chatbot:visitor' %}" data-suggestions-url="{% url 'chatbot:visitor' %}"{% endif %}>
+
+  <section class="chat-panel" id="chat-panel" role="dialog" aria-label="Asistente virtual" hidden>
+    <header class="chat-head">
+      <div>
+        <strong>Asistente virtual</strong>
+        <span>Soluciones SSDP</span>
+      </div>
+      <button type="button" class="chat-close" aria-label="Cerrar chat">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </header>
+
+    <div class="chat-body" id="chat-body" aria-live="polite"></div>
+    <form class="chat-form" id="chat-form" autocomplete="off">
+      <label class="sr-only" for="chat-input">Tu mensaje</label>
+      <input id="chat-input" type="text" maxlength="{% if user.is_authenticated %}500{% else %}300{% endif %}" placeholder="Escribe tu consulta" required>
+      <button type="submit" class="chat-send" aria-label="Enviar mensaje">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </form>
+    <button type="button" class="chat-human">Hablar con una persona</button>
+    {% if user.is_authenticated %}
+      <p class="chat-note">Respuestas automáticas. Los precios y los casos particulares se derivan a un ticket. <a href="{% url 'privacy' %}">Privacidad</a></p>
+    {% else %}
+      <p class="chat-note">Sin cuenta puedes consultar lo básico. Para registrar una solicitud, <a href="{% url 'login' %}?next={{ request.path|urlencode }}">ingresa</a> o <a href="{% url 'register' %}">crea una cuenta</a>. <a href="{% url 'privacy' %}">Privacidad</a></p>
+    {% endif %}
+  </section>
+
+  <button type="button" class="chat-launcher" aria-expanded="false" aria-controls="chat-panel">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="chat-launcher-text">Asistente virtual</span>
+  </button>
+</div>
+<script src="{% static 'js/chat.js' %}" defer></script>

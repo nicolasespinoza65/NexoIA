@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Galería de trabajos{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head">
+    <div>
+      <h1>Galería de trabajos</h1>
+      <p class="muted">Las fotos que subas aparecen en la portada, dentro de su segmento, y quedan guardadas en el sitio. {{ total }} foto{{ total|pluralize }} subida{{ total|pluralize }} hasta ahora.</p>
+    </div>
+    <a class="btn btn-outline" href="{% url 'home' %}#segmentos">Ver en la portada</a>
+  </div>
+
+  <div class="gallery-layout">
+    <section class="panel upload-panel" aria-labelledby="subir">
+      <h2 id="subir">Subir fotos</h2>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% include "partials/form_fields.html" %}
+        <button type="submit" class="btn btn-block">Subir fotos</button>
+      </form>
+    </section>
+
+    <section aria-labelledby="subidas">
+      <h2 id="subidas">Fotos subidas</h2>
+      <nav class="gallery-chips" aria-label="Filtrar por segmento">
+        <a href="{% url 'accounts:gallery' %}"{% if not selected %} aria-current="true"{% endif %}>Todas ({{ total }})</a>
+        {% for chip in chips %}<a href="?segmento={{ chip.slug }}"{% if chip.slug == selected %} aria-current="true"{% endif %}>{{ chip.title }} ({{ chip.count }})</a>{% endfor %}
+      </nav>
+
+      {% if page_obj %}
+      <div class="gallery-grid">
+        {% for p in page_obj %}
+        <article class="g-card">
+          <a class="photo-frame" data-orient="{{ p.orient }}" style="--photo:url('{% url 'accounts:work_photo' p.id %}')" href="{% url 'accounts:work_photo' p.id %}" target="_blank" rel="noopener">
+            <img src="{% url 'accounts:work_photo' p.id %}" alt="{{ p.caption|default:p.segment_title }}"{% if p.width %} width="{{ p.width }}" height="{{ p.height }}"{% endif %} loading="lazy">
+            <span class="sr-only">(abre la foto en una pestaña nueva)</span>
+          </a>
+          <div class="g-body">
+            <p class="g-title">{{ p.caption|default:p.segment_title }}</p>
+            <p class="g-meta">{{ p.segment_title }}<br>
+              Subida por {% if p.uploaded_by %}{{ p.uploaded_by.get_full_name|default:p.uploaded_by.username }}{% else %}un usuario eliminado{% endif %}, el {{ p.created_at|date:"d/m/Y" }}</p>
+          </div>
+          {% if p.can_manage %}
+          <details class="g-edit">
+            <summary>Editar texto o segmento</summary>
+            <form method="post" action="{% url 'accounts:gallery_edit' p.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              {% include "partials/form_fields.html" with form=p.edit_form %}
+              <button type="submit" class="btn btn-sm">Guardar cambios</button>
+            </form>
+          </details>
+          <div class="g-actions">
+            <form method="post" action="{% url 'accounts:gallery_delete' p.id %}" onsubmit="return confirm('¿Eliminar esta foto? Dejará de verse en la portada y no se puede deshacer.');">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+            </form>
+          </div>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p><strong>{% if selected %}Este segmento aún no tiene fotos subidas.{% else %}Todavía no hay fotos subidas.{% endif %}</strong></p>
+        <p>Elige una o varias fotos en el formulario y escoge el segmento donde deben aparecer.{% if not is_manager %} Podrás editar o eliminar las que subas tú.{% endif %}</p>
+      </div>
+      {% endif %}
+
+      {% if page_obj.has_other_pages %}
+      <nav class="pagination" aria-label="Paginación">
+        {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>{% endif %}
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="btn btn-sm btn-outline" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>{% endif %}
+      </nav>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

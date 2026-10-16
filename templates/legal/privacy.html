@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Política de privacidad{% endblock %}
+{% block content %}
+<div class="container page">
+  <article class="panel legal">
+    <h1>Política de privacidad</h1>
+    <p class="muted">Última actualización: octubre de 2026</p>
+
+    <h2>1. Quién es el responsable</h2>
+    <p>Soluciones SSDP Servicios Integrales SpA, en Talca, Chile, es responsable del tratamiento de los datos personales que recoge este sitio.{% if company.email %} Puedes escribirnos a <a href="mailto:{{ company.email }}">{{ company.email }}</a> para cualquier consulta sobre tus datos.{% endif %}</p>
+
+    <h2>2. Qué datos recogemos</h2>
+    <ul>
+      <li><strong>De tu cuenta:</strong> nombre, correo electrónico, nombre de usuario y contraseña (que se guarda cifrada, nunca en texto legible). Si los entregas: teléfono y dirección.</li>
+      <li><strong>De tus solicitudes:</strong> asunto, descripción, categoría, teléfono y dirección del trabajo, fotos que adjuntes, comentarios, la calificación de la atención, las cotizaciones que recibas y tu respuesta a ellas.</li>
+      <li><strong>De la atención del trabajo:</strong> fecha y hora de las visitas agendadas, la nota de cierre y las fotos del trabajo realizado que sube nuestro equipo.</li>
+      <li><strong>De tus conversaciones con el asistente virtual:</strong> los mensajes que escribes y las respuestas, solo cuando tienes la sesión iniciada. Las preguntas básicas que hacen los visitantes sin cuenta no se guardan.</li>
+      <li><strong>Datos técnicos:</strong> cookies necesarias para mantener tu sesión y proteger los formularios, y registros del servidor y de auditoría (como la dirección IP y la fecha) con fines de seguridad.</li>
+    </ul>
+    <p><strong>Tus fotos:</strong> antes de guardarlas eliminamos de ellas los datos ocultos que traen los teléfonos, como la ubicación GPS exacta donde se tomaron.</p>
+
+    <h2>3. Para qué los usamos</h2>
+    <p>Para atender tus solicitudes, enviarte cotizaciones, coordinar y recordarte visitas, avisarte por la plataforma y por correo de los cambios en tus tickets, verificar tu correo, mejorar el servicio mediante indicadores de gestión y proteger el sitio contra usos abusivos.</p>
+
+    <h2>4. Inteligencia artificial</h2>
+    <p>Cuando el servicio de inteligencia artificial está activo, pueden enviarse a un proveedor externo (Anthropic): (a) los mensajes que escribes en el chat con la sesión iniciada, para generar la respuesta; y (b) el asunto y la descripción de un ticket, cuando una persona de nuestro equipo usa la ayuda de IA para clasificarlo. En ambos casos la IA solo propone: una persona revisa y decide. No se envían mensajes de visitantes sin cuenta. Por favor no escribas en el chat datos sensibles ni contraseñas.</p>
+
+    <h2>5. Quién puede ver tus datos</h2>
+    <p>Tus tickets y datos de contacto los ven las personas de nuestro equipo que los necesitan para atenderte: moderadores, el trabajador asignado y administradores. Los trabajadores no ven los montos de las cotizaciones. Otros clientes no tienen acceso a tu información ni a tus fotos. No vendemos tus datos. Usamos proveedores de alojamiento, correo electrónico e inteligencia artificial que tratan datos solo para prestarnos su servicio.</p>
+
+    <h2>6. Cookies y servicios externos</h2>
+    <p>Usamos solo las cookies necesarias para el funcionamiento (sesión y seguridad). No usamos cookies de publicidad. Este sitio carga tipografías desde Google Fonts{% if turnstile_enabled %} y usa el servicio anti-bots Cloudflare Turnstile al crear una cuenta{% endif %}, lo que implica una conexión con esos servicios desde tu navegador.</p>
+
+    <h2>7. Cuánto tiempo los conservamos</h2>
+    <p>Las conversaciones con el asistente se eliminan automáticamente pasados {{ chat_retention_days }} días. El resto de tus datos los conservamos mientras mantengas tu cuenta o sean necesarios para atender tus solicitudes y cumplir obligaciones legales.</p>
+    <p>Si eliminas tu cuenta, borramos tu nombre, correo, teléfono y dirección, tus conversaciones, notificaciones y fotos, y cancelamos tus tickets activos. El contenido de tus solicitudes anteriores puede conservarse en el historial de la empresa sin tus datos de contacto ni vínculo con tu identidad.</p>
+
+    <h2>8. Tus derechos</h2>
+    <p>Conforme a la normativa chilena de protección de datos personales, puedes acceder a tus datos, corregirlos, pedir su eliminación u oponerte a ciertos usos. Puedes hacerlo tú mismo en <a href="{% url 'accounts:profile' %}">Mi perfil</a>: ahí editas tu teléfono y dirección, <strong>descargas una copia de tus datos</strong> y <strong>eliminas tu cuenta</strong>. Para cualquier otra solicitud, contáctanos por los medios indicados en el sitio.</p>
+
+    <h2>9. Seguridad</h2>
+    <p>Protegemos tus datos con contraseñas cifradas, control de acceso por rol, fotos que solo ven quienes participan en el ticket, bloqueo de intentos repetidos de ingreso, verificación en dos pasos para cuentas del equipo y un registro de auditoría de las acciones administrativas. Ningún sistema es infalible, por lo que te recomendamos usar una contraseña única.</p>
+
+    <h2>10. Cambios en esta política</h2>
+    <p>Podemos actualizar esta política. La fecha de arriba indica la última versión.</p>
+  </article>
+</div>
+{% endblock %}

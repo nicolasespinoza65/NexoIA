@@ -1,0 +1,139 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}Inicio{% endblock %} · Soluciones SSDP</title>
+  <meta name="description" content="Servicios eléctricos en Talca. Pide una cotización, reporta una falla y sigue cada solicitud en línea.">
+  <meta name="theme-color" content="#E4002B">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Soluciones SSDP">
+  <meta property="og:title" content="{% block og_title %}Soluciones SSDP · Servicios eléctricos en Talca{% endblock %}">
+  <meta property="og:description" content="Pide una cotización, reporta una falla y sigue cada solicitud en línea.">
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+{% if environment_label %}<div class="env-banner" role="status">Ambiente de {{ environment_label }}: los datos de este sitio no son reales.</div>{% endif %}
+<a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="{% url 'home' %}">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="#fff"/></svg>
+      </span>
+      <span class="brand-name">Soluciones SSDP<small>Servicios Integrales SpA</small></span>
+    </a>
+
+    <button type="button" class="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menú">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <nav class="main-nav" id="main-nav" aria-label="Principal">
+      {% with ns=request.resolver_match.namespace name=request.resolver_match.url_name %}
+      <a href="{% url 'home' %}"{% if name == 'home' %} aria-current="page"{% endif %}>Inicio</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'tickets:list' %}"{% if ns == 'tickets' and name != 'create' %} aria-current="page"{% endif %}>{% if user.role == "CLIENTE" %}Mis tickets{% else %}Tickets{% endif %}</a>
+        <a href="{% url 'tickets:agenda' %}"{% if name == 'agenda' %} aria-current="page"{% endif %}>Agenda</a>
+        {% if user.role == "CLIENTE" %}<a href="{% url 'tickets:create' %}"{% if ns == 'tickets' and name == 'create' %} aria-current="page"{% endif %}>Nuevo ticket</a>{% endif %}
+        <a href="{% url 'notifications:list' %}"{% if ns == 'notifications' %} aria-current="page"{% endif %}>Notificaciones{% if unseen_notifications %}<span class="count" title="{{ unseen_notifications }} sin leer">{{ unseen_notifications }}</span>{% endif %}</a>
+        {% if user.role != "CLIENTE" %}<a href="{% url 'accounts:gallery' %}"{% if name == 'gallery' %} aria-current="page"{% endif %}>Galería</a>{% endif %}
+        {% if user.role == "ADMIN" %}
+          <details class="nav-group{% if name == 'users' or ns == 'chatbot' or ns == 'stats' or name == 'audit' %} is-current{% endif %}">
+            <summary>Administrar</summary>
+            <div class="nav-menu">
+              <a href="{% url 'accounts:users' %}"{% if name == 'users' %} aria-current="page"{% endif %}>Usuarios</a>
+              <a href="{% url 'chatbot:faq_list' %}"{% if ns == 'chatbot' %} aria-current="page"{% endif %}>Respuestas</a>
+              <a href="{% url 'stats:dashboard' %}"{% if ns == 'stats' %} aria-current="page"{% endif %}>Indicadores</a>
+              <a href="{% url 'accounts:audit' %}"{% if name == 'audit' %} aria-current="page"{% endif %}>Auditoría</a>
+            </div>
+          </details>
+        {% endif %}
+        <a class="user-chip" href="{% url 'accounts:profile' %}" title="Mi perfil">{{ user.get_full_name|default:user.username }}<small>{{ user.get_role_display }}</small></a>
+        <form class="logout-form" method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="btn-link">Salir</button></form>
+      {% else %}
+        <a href="{% url 'login' %}"{% if name == 'login' %} aria-current="page"{% endif %}>Ingresar</a>
+        <a class="btn btn-sm" href="{% url 'register' %}">Crear cuenta</a>
+      {% endif %}
+      {% endwith %}
+    </nav>
+  </div>
+</header>
+
+{% if user.is_authenticated and not user.email_verified and user.role == "CLIENTE" %}
+<div class="verify-banner" role="status">
+  <div class="container">
+    <span>Confirma tu correo (<strong>{{ user.email }}</strong>) para usar el asistente completo.</span>
+    <form method="post" action="{% url 'accounts:resend_verification' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit" class="btn btn-sm btn-outline">Reenviar correo</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<main id="contenido">
+  {% if messages %}
+  <div class="container flash-wrap">
+    {% for m in messages %}<div class="flash flash-{{ m.tags }}" role="status">{{ m }}</div>{% endfor %}
+  </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <p><strong>Soluciones SSDP Servicios Integrales SpA</strong></p>
+        <p>Trabajos eléctricos en Talca, Chile.</p>
+      </div>
+      <div>
+        <h2>Contacto</h2>
+        {% if company.phone or company.email or company.hours %}
+        <ul>
+          {% if company.phone %}<li><a href="tel:{{ company.phone_href }}">{{ company.phone }}</a></li>{% endif %}
+          {% if company.email %}<li><a href="mailto:{{ company.email }}">{{ company.email }}</a></li>{% endif %}
+          {% if company.hours %}<li>{{ company.hours }}</li>{% endif %}
+        </ul>
+        {% else %}
+        <p>Escríbele al asistente o crea un ticket y te respondemos.</p>
+        {% endif %}
+      </div>
+      <div>
+        <h2>El sitio</h2>
+        <ul>
+          <li><a href="{% url 'home' %}">Inicio</a></li>
+          {% if user.is_authenticated %}<li><a href="{% url 'tickets:list' %}">{% if user.role == "CLIENTE" %}Mis tickets{% else %}Tickets{% endif %}</a></li>
+          {% else %}<li><a href="{% url 'login' %}">Ingresar</a></li>{% endif %}
+          <li><a href="{% url 'terms' %}">Términos de uso</a></li>
+          <li><a href="{% url 'privacy' %}">Política de privacidad</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% if company.whatsapp and not user.is_authenticated or company.whatsapp and user.role == "CLIENTE" %}
+<a class="wa-float" href="https://wa.me/{{ company.whatsapp }}?text=Hola%2C%20necesito%20ayuda%20con%20un%20servicio%20el%C3%A9ctrico" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.6-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg>
+  <span>WhatsApp</span>
+</a>
+{% endif %}
+
+{% block chat_widget %}
+  {% if not user.is_authenticated or user.role == "CLIENTE" %}
+    {% include "partials/chat_widget.html" %}
+  {% endif %}
+{% endblock %}
+<script src="{% static 'js/nav.js' %}" defer></script>
+<script src="{% static 'js/ui.js' %}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

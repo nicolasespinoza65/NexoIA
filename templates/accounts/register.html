@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Crear cuenta{% endblock %}
+{% block chat_widget %}{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="panel auth">
+    <h1>Crear cuenta</h1>
+    <p class="muted">Con tu cuenta de cliente puedes crear tickets, seguirlos y hablar con el asistente virtual.</p>
+    <form method="post">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" %}
+      {% if turnstile_site_key %}
+        <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+      {% endif %}
+      <p class="help">Lee los <a href="{% url 'terms' %}" target="_blank" rel="noopener">términos de uso</a> y la <a href="{% url 'privacy' %}" target="_blank" rel="noopener">política de privacidad</a>.</p>
+      <button type="submit" class="btn btn-block">Crear cuenta</button>
+    </form>
+    <p class="auth-alt">¿Ya tienes cuenta? <a href="{% url 'login' %}">Ingresar</a></p>
+  </div>
+</div>
+{% endblock %}

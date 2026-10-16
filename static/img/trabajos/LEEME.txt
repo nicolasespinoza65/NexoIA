@@ -1,0 +1,30 @@
+Fotos del apartado "Trabajos por segmento" de la portada
+=========================================================
+Cada subcarpeta es un segmento de trabajo:
+
+  subestacion-500kva/       Subestación con transformador de 500 kVA
+  supermercado/             Instalación eléctrica de supermercado (obra en proceso)
+  casa-habitacion/          Instalación eléctrica en casa habitación
+  empalme-monofasico/       Empalme monofásico con línea
+  aire-acondicionado/       Equipos de aire acondicionado
+  informes-certificaciones/ (sin fotos: se muestra como texto)
+
+Para agregar una foto: cópiala en la carpeta del segmento (.jpg, .jpeg, .png o .webp, idealmente de 1200 px de
+ancho y menos de 400 KB). Se ordenan por nombre, así que usa un prefijo: 06-nombre.jpg.
+Máximo 12 fotos por segmento. Un segmento sin fotos no se muestra (salvo "informes-certificaciones").
+
+Para que la foto nueva tenga su propio texto bajo la imagen, agrega su nombre de archivo en accounts/works.py,
+dentro de "captions" del segmento. Si no lo haces, se usa el título del segmento.
+
+Para cambiar los títulos, las descripciones o crear un segmento nuevo, edita la lista SEGMENTS de accounts/works.py
+(y crea la carpeta con el mismo "slug").
+
+Después de agregar fotos, en el servidor ejecuta:
+  python manage.py collectstatic --noinput
+y reinicia Gunicorn (sudo systemctl restart <nombre-del-servicio>).
+
+Subir fotos sin tocar archivos
+------------------------------
+El personal (trabajadores, moderadores y administradores) puede subir fotos nuevas desde el sitio, en el apartado
+"Galería" del menú. Esas fotos se guardan en media/trabajos/ (no en esta carpeta) y aparecen en la portada, dentro
+de su segmento. Esta carpeta sirve para las fotos que vienen incluidas con el proyecto.

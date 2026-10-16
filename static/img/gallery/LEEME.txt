@@ -1,0 +1,6 @@
+Fotos de trabajos para la portada
+=================================
+Copia aquí imágenes .jpg, .jpeg, .png o .webp de trabajos realizados (idealmente de 1200 px de ancho y menos de 400 KB cada una).
+Aparecen solas en la sección "Trabajos realizados" de la página de inicio (máximo 12, en orden alfabético).
+Si la carpeta no tiene imágenes, la sección no se muestra.
+Después de agregarlas, en el servidor ejecuta: python manage.py collectstatic --noinput

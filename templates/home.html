@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Servicios eléctricos en Talca{% endblock %}
+{% block content %}
+<section class="hero">
+  <svg class="hero-bolt" viewBox="0 0 24 24" aria-hidden="true" preserveAspectRatio="xMidYMid meet"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="none" stroke="#E4002B" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <h1>Servicios eléctricos en Talca, con seguimiento de cada solicitud</h1>
+      <p class="hero-lead">Pide una cotización, reporta una falla o consulta por una instalación. Cada solicitud queda registrada, clasificada y asignada a un trabajador de nuestro equipo.</p>
+      <div class="hero-actions">
+        {% if user.is_authenticated %}
+          {% if user.role == "CLIENTE" %}
+            <a class="btn btn-lg" href="{% url 'tickets:create' %}">Crear un ticket</a>
+            <a class="btn btn-lg btn-light" href="{% url 'tickets:list' %}">Ver mis tickets</a>
+          {% else %}
+            <a class="btn btn-lg" href="{% url 'tickets:list' %}">Ir al panel de tickets</a>
+          {% endif %}
+        {% else %}
+          {% if company.whatsapp %}
+            <a class="btn btn-lg btn-wa" href="https://wa.me/{{ company.whatsapp }}?text=Hola%2C%20necesito%20ayuda%20con%20un%20servicio%20el%C3%A9ctrico" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+            <a class="btn btn-lg btn-light" href="{% url 'register' %}">Crear cuenta y pedir un servicio</a>
+          {% else %}
+            <a class="btn btn-lg" href="{% url 'register' %}">Crear cuenta y pedir un servicio</a>
+          {% endif %}
+          <a class="btn btn-lg btn-light" href="{% url 'login' %}">Ya tengo cuenta</a>
+        {% endif %}
+      </div>
+      {% if not user.is_authenticated and company.whatsapp %}
+        <p class="hero-hint">No necesitas cuenta para consultarnos: escríbenos por WhatsApp o pregúntale al asistente en el chat de la esquina. La cuenta solo hace falta para crear tickets y seguirlos.</p>
+      {% elif not user.is_authenticated or user.role == "CLIENTE" %}
+        <p class="hero-hint">¿Una duda rápida? Escríbele al asistente en el chat de la esquina inferior derecha.</p>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="section container" aria-labelledby="servicios">
+  <h2 id="servicios">Qué puedes pedirnos</h2>
+  <p class="section-lead">Estas son las categorías con las que clasificamos cada solicitud.</p>
+  <dl class="services">
+    <div class="service">
+      <dt>Instalaciones eléctricas</dt>
+      <dd>Tableros, empalmes, tendidos y ampliaciones para hogares y negocios.</dd>
+    </div>
+    <div class="service">
+      <dt>Mantención y reparación</dt>
+      <dd>Fallas, cambio de protecciones, enchufes y revisiones de tu instalación.</dd>
+    </div>
+    <div class="service">
+      <dt>Cotizaciones</dt>
+      <dd>Cuéntanos qué necesitas y un moderador revisa tu caso. No entregamos precios por chat.</dd>
+    </div>
+    <div class="service service-alert">
+      <dt>Emergencias</dt>
+      <dd>Cortes, chispazos u olor a quemado: elige esta categoría para que el equipo la identifique de inmediato. Si hay riesgo inmediato para las personas, llama a Bomberos (132).</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="section-band" aria-labelledby="como-funciona">
+  <div class="container section">
+    <h2 id="como-funciona">Cómo funciona</h2>
+    <ol class="steps">
+      <li>
+        <h3>Cuéntanos qué necesitas</h3>
+        <p>Crea un ticket y elige su categoría, o escríbele al asistente virtual.</p>
+      </li>
+      <li>
+        <h3>Lo revisamos</h3>
+        <p>Un moderador revisa la solicitud, define su prioridad y la asigna a un trabajador.</p>
+      </li>
+      <li>
+        <h3>Sigues el avance</h3>
+        <p>Ves el estado, comentas y recibes notificaciones hasta que el ticket se cierra.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+{% if segments %}
+<section class="section container" id="segmentos" aria-labelledby="trabajos-segmento">
+  <div class="works-head">
+    <div>
+      <h2 id="trabajos-segmento">Trabajos por segmento</h2>
+      <p class="section-lead">Una muestra de lo que hemos instalado, agrupada por tipo de trabajo. Toca una foto para verla ampliada.</p>
+    </div>
+    {% if can_upload_photos %}<a class="btn btn-outline" href="{% url 'accounts:gallery' %}">Agregar o quitar fotos</a>{% endif %}
+  </div>
+  <nav class="works-nav" aria-label="Segmentos de trabajo">
+    {% for seg in segments %}<a href="#seg-{{ seg.slug }}">{{ seg.title }}{% if seg.photos %}<small>{{ seg.photos|length }}</small>{% endif %}</a>{% endfor %}
+  </nav>
+  {% for seg in segments %}
+  <article class="work-segment" id="seg-{{ seg.slug }}" aria-labelledby="seg-{{ seg.slug }}-titulo">
+    <header class="work-head">
+      <h3 id="seg-{{ seg.slug }}-titulo">{{ seg.title }}{% if seg.note %}<span class="work-tag">{{ seg.note }}</span>{% endif %}</h3>
+      <p>{{ seg.description }}</p>
+    </header>
+    {% if seg.photos %}
+    <div class="work-photos">
+      {% for photo in seg.photos %}
+      <figure>
+        <a class="photo-frame" data-orient="{{ photo.orient }}" style="--photo:url('{{ photo.url }}')" href="{{ photo.url }}" data-lightbox data-group="{{ seg.slug }}" data-caption="{{ photo.caption }}" target="_blank" rel="noopener">
+          <img src="{{ photo.url }}" alt="{{ photo.caption }}"{% if photo.width %} width="{{ photo.width }}" height="{{ photo.height }}"{% endif %} loading="lazy">
+          <span class="sr-only">(abre la foto ampliada)</span>
+        </a>
+        <figcaption>{{ photo.caption }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </article>
+  {% endfor %}
+</section>
+
+<dialog class="lightbox" id="lightbox" aria-label="Foto ampliada">
+  <figure class="lb-figure">
+    <img alt="" src="">
+    <figcaption><span class="lb-caption"></span><span class="lb-count" aria-live="polite"></span></figcaption>
+  </figure>
+  <button type="button" class="lb-btn lb-prev" aria-label="Foto anterior">&#8249;</button>
+  <button type="button" class="lb-btn lb-next" aria-label="Foto siguiente">&#8250;</button>
+  <button type="button" class="lb-btn lb-close" aria-label="Cerrar">&times;</button>
+</dialog>
+{% endif %}
+
+{% if gallery %}
+<section class="section container" aria-labelledby="trabajos">
+  <h2 id="trabajos">Trabajos realizados</h2>
+  <div class="gallery">
+    {% for img in gallery %}
+      <figure><img src="{% static 'img/gallery/'|add:img %}" alt="Trabajo realizado por Soluciones SSDP" loading="lazy"></figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if faqs %}
+<section class="section container" id="preguntas" aria-labelledby="preguntas-frecuentes">
+  <h2 id="preguntas-frecuentes">Preguntas frecuentes</h2>
+  <p class="section-lead">Respuestas a lo que más nos consultan. Si tu duda no está aquí, escríbele al asistente o crea un ticket.</p>
+  <div class="faq-list">
+    {% for faq in faqs %}
+    <details class="faq-item">
+      <summary>{{ faq.title }}</summary>
+      <div class="faq-answer">{{ faq.answer|linebreaksbr }}</div>
+    </details>
+    {% endfor %}
+  </div>
+  <script type="application/ld+json">{{ faq_jsonld }}</script>
+</section>
+{% endif %}
+
+{% if company_has_contact %}
+<section class="section container" aria-labelledby="contacto">
+  <h2 id="contacto">Contacto</h2>
+  <dl class="contact">
+    {% if company.phone %}<div><dt>Teléfono</dt><dd><a href="tel:{{ company.phone_href }}">{{ company.phone }}</a></dd></div>{% endif %}
+    {% if company.whatsapp %}<div><dt>WhatsApp</dt><dd><a href="https://wa.me/{{ company.whatsapp }}" target="_blank" rel="noopener">Escribir por WhatsApp</a></dd></div>{% endif %}
+    {% if company.email %}<div><dt>Correo</dt><dd><a href="mailto:{{ company.email }}">{{ company.email }}</a></dd></div>{% endif %}
+    {% if company.hours %}<div><dt>Horario</dt><dd>{{ company.hours }}</dd></div>{% endif %}
+    {% if company.area %}<div><dt>Zona de atención</dt><dd>{{ company.area }}</dd></div>{% endif %}
+    {% if company.address %}<div><dt>Dirección</dt><dd>{{ company.address }}</dd></div>{% endif %}
+  </dl>
+</section>
+{% endif %}
+{% endblock %}
+{% block scripts %}{% if segments %}<script src="{% static 'js/lightbox.js' %}" defer></script>{% endif %}{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="page-head"><h1>Mi perfil</h1></div>
+  <div class="create-grid">
+    <div>
+      <div class="panel">
+        <form method="post">
+          {% csrf_token %}
+          {% include "partials/form_fields.html" %}
+          <button type="submit" class="btn">Guardar cambios</button>
+        </form>
+      </div>
+
+      <div class="panel" id="privacidad">
+        <h2>Mis datos</h2>
+        <p class="muted">Tienes derecho a llevarte una copia de tus datos y a pedir que se eliminen. Más detalles en la <a href="{% url 'privacy' %}">política de privacidad</a>.</p>
+        <form method="post" action="{% url 'accounts:export_data' %}" class="inline-block">{% csrf_token %}<button type="submit" class="btn btn-outline">Descargar mis datos (.zip)</button></form>
+        {% if user.role == "CLIENTE" %}
+          <a class="btn btn-danger" href="{% url 'accounts:delete_account' %}">Eliminar mi cuenta</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <aside class="panel side-note">
+      <h2>Mi cuenta</h2>
+      <p><strong>Usuario:</strong> {{ user.username }}<br><strong>Rol:</strong> {{ user.get_role_display }}</p>
+      <p><strong>Correo:</strong> {{ user.email }}<br>
+        {% if user.email_verified %}<span class="badge st-CERRADO">Confirmado</span>
+        {% else %}<span class="badge st-ASIGNADO">Sin confirmar</span>{% endif %}</p>
+      {% if not user.email_verified %}
+        <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline">Reenviar correo de confirmación</button></form>
+      {% endif %}
+
+      <h3 class="side-title">Seguridad</h3>
+      <p>Verificación en dos pasos:
+        {% if user.totp_enabled %}<span class="badge st-CERRADO">Activa</span>{% else %}<span class="badge st-ASIGNADO">Desactivada</span>{% endif %}</p>
+      {% if user.totp_enabled %}
+        {% if not two_factor_required %}<p><a href="{% url 'accounts:two_factor_disable' %}">Quitar verificación en dos pasos</a></p>{% endif %}
+      {% else %}
+        <p><a class="btn btn-sm" href="{% url 'accounts:two_factor_setup' %}">Activar verificación en dos pasos</a></p>
+        {% if user.role == "ADMIN" or user.role == "MODERADOR" %}<p class="muted">Muy recomendada para cuentas del equipo.</p>{% endif %}
+      {% endif %}
+      <p><a href="{% url 'accounts:password_change' %}">Cambiar mi contraseña</a></p>
+      <p class="muted">El teléfono y la dirección se usan para coordinar tus visitas y se rellenan solos al crear un ticket.</p>
+    </aside>
+  </div>
+</div>
+{% endblock %}

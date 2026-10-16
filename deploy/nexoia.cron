@@ -1,0 +1,12 @@
+# Tareas programadas de NexoIA. Instalar con:  deploy/install_cron.sh   (o copiar estas líneas con "crontab -e").
+# La ruta del proyecto y del entorno virtual se reemplazan al instalar. La hora es la del servidor.
+#
+# Las variables de entorno del sitio (DJANGO_SECRET_KEY, base de datos, correo...) deben estar disponibles para cron:
+# cron NO lee ~/.bashrc ni el archivo .service de systemd. El instalador las toma de un archivo de entorno (ver README): sus valores con espacios van entre comillas.
+
+# 03:00  Respaldo de la base de datos y las fotos (conserva los últimos 7)
+0 3 * * *   cd @PROJECT@ && set -a && . @ENVFILE@ && set +a && @PYTHON@ manage.py backup >> @PROJECT@/logs/cron.log 2>&1
+# 03:30  Borrado de conversaciones y notificaciones antiguas (plazos de la política de privacidad)
+30 3 * * *  cd @PROJECT@ && set -a && . @ENVFILE@ && set +a && @PYTHON@ manage.py purge_old_data >> @PROJECT@/logs/cron.log 2>&1
+# 08:00  Recordatorio de visitas de hoy y mañana + resumen diario para moderadores y administradores
+0 8 * * *   cd @PROJECT@ && set -a && . @ENVFILE@ && set +a && @PYTHON@ manage.py send_reminders >> @PROJECT@/logs/cron.log 2>&1

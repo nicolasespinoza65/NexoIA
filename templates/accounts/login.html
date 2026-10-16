@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Ingresar{% endblock %}
+{% block chat_widget %}{% endblock %}
+{% block content %}
+<div class="container page">
+  <div class="panel auth">
+    <h1>Ingresar</h1>
+    <p class="muted">Accede para crear tickets y ver el estado de tus solicitudes.</p>
+    {% if lock_minutes %}
+      <div class="flash flash-error" role="alert">Demasiados intentos fallidos. Espera {{ lock_minutes }} minutos antes de intentarlo de nuevo, o <a href="{% url 'accounts:password_reset' %}">recupera tu contraseña</a>.</div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      {% include "partials/form_fields.html" %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn btn-block">Ingresar</button>
+    </form>
+    <p class="auth-alt"><a href="{% url 'accounts:password_reset' %}">¿Olvidaste tu contraseña?</a></p>
+    <p class="auth-alt">¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate como cliente</a></p>
+  </div>
+</div>
+{% endblock %}
